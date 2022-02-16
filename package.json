@@ -1,15 +1,25 @@
 {
   "name": "client-ws",
-  "version": "0.0.3-alpha.0",
-  "description": "适用于websocket连接",
+  "version": "0.0.3",
+  "description": "适用于websocket连接的前端包",
   "main": "index.js",
   "module": "./dist/index.js",
   "scripts": {
     "build": "tsc",
     "update:version": "standard-version",
-    "release": "cross-env standard-version && git push --follow-tags origin master && npm publish"
+    "release": "standard-version && git push --follow-tags origin master && npm publish"
   },
-  "keywords": [],
+  "keywords": [
+    "websocket",
+    "ws",
+    "socket"
+  ],
+  "homepage": "https://github.com/ZackeryKai/client-ws",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZackeryKai/client-ws"
+  },
+  "bugs": "https://github.com/ZackeryKai/client-ws/issues",
   "author": "zackery <hzk1905@163.com>",
   "license": "ISC",
   "devDependencies": {
