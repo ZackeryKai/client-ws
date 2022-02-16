@@ -10,7 +10,7 @@
     "release": "cross-env standard-version && git push --follow-tags origin master && npm publish"
   },
   "keywords": [],
-  "author": "huangzekai1 <huangzekai1@yy.com>",
+  "author": "zackery <hzk1905@163.com>",
   "license": "ISC",
   "devDependencies": {
     "standard-version": "^9.3.2"
