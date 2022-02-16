@@ -1,0 +1,18 @@
+{
+  "name": "client-ws",
+  "version": "0.0.3-alpha.0",
+  "description": "适用于websocket连接",
+  "main": "index.js",
+  "module": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "update:version": "standard-version",
+    "release": "cross-env standard-version && git push --follow-tags origin master && npm publish"
+  },
+  "keywords": [],
+  "author": "huangzekai1 <huangzekai1@yy.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "standard-version": "^9.3.2"
+  }
+}
