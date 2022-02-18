@@ -1,6 +1,6 @@
 {
   "name": "client-ws",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "适用于websocket连接的前端包",
   "main": "index.js",
   "module": "./dist/index.js",
