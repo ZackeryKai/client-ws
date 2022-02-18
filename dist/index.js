@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Utils = __importStar(require("./utils"));
 var SocketIo = /** @class */ (function () {
     function SocketIo(_a) {
-        var url = _a.url, protocol = _a.protocol, callback = _a.callback, heartbeatData = _a.heartbeatData, isHeartbeatInspect = _a.isHeartbeatInspect, heartbeatDelay = _a.heartbeatDelay, autoReconnect = _a.autoReconnect, isAjaxPolling = _a.isAjaxPolling;
+        var url = _a.url, protocol = _a.protocol, callback = _a.callback, heartbeatData = _a.heartbeatData, isHeartbeatInspect = _a.isHeartbeatInspect, heartbeatDelay = _a.heartbeatDelay, autoReconnect = _a.autoReconnect, isAjaxPolling = _a.isAjaxPolling, socketEvt = _a.socketEvt;
         this.ws = null; // socket对象
         this.isAjaxPolling = false; // 当浏览器不支持socket服务时，是否使用轮询的方式
         this.reqURL = null; // 轮询请求用的URL
@@ -45,6 +45,7 @@ var SocketIo = /** @class */ (function () {
         this.autoReconnect = autoReconnect !== null && autoReconnect !== void 0 ? autoReconnect : false;
         this.isAjaxPolling = isAjaxPolling !== null && isAjaxPolling !== void 0 ? isAjaxPolling : false;
         this.isHeartbeatInspect = isHeartbeatInspect !== null && isHeartbeatInspect !== void 0 ? isHeartbeatInspect : false;
+        this.socketEvt = socketEvt !== null && socketEvt !== void 0 ? socketEvt : null;
         this.callback = callback || this.callback;
         if (this.createConnectInspect()) {
             this.init();
@@ -66,6 +67,7 @@ var SocketIo = /** @class */ (function () {
         // 利用轮询发送数据
     };
     SocketIo.prototype.createConnectInspect = function () {
+        var _a, _b;
         if (!('WebSocket' in window)) {
             console.error('[websocket]: 当前浏览器不支持创建websocket服务');
             return false;
@@ -78,30 +80,48 @@ var SocketIo = /** @class */ (function () {
             console.error('[websocket]: 未知websocket连接的协议(ws|wss)');
             return false;
         }
+        if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.before)) {
+            return ((_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.before.call(this)) || false;
+        }
         return true;
     };
     SocketIo.prototype.onOpened = function () {
-        var _a;
+        var _a, _b, _c;
         if (((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) === WebSocket.OPEN) {
             console.log('[websocket]: websocket服务已经成功创建连接');
             // 如果需要心跳检测则在连接成功后初始化心跳检测
             this.isHeartbeatInspect && this.heartbeat();
+            if (Utils.isFunction((_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.open)) {
+                (_c = this.socketEvt) === null || _c === void 0 ? void 0 : _c.open.call(this, this.ws.readyState);
+            }
         }
     };
     SocketIo.prototype.onMessage = function (evt) {
+        var _a, _b, _c;
         if (this.isHeartbeatInspect)
             this.heartbeat();
         if (Utils.isFunction(this.callback)) {
             this.callback(evt);
         }
+        else if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.message)) {
+            (_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.message.call(this, ((_c = this.ws) === null || _c === void 0 ? void 0 : _c.readyState) || -1, evt);
+        }
     };
     SocketIo.prototype.onError = function () {
+        var _a, _b, _c;
         if (this.autoReconnect)
             this.reconnectWS(this.maxReconnectTimes);
+        if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.error)) {
+            (_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.error.call(this, ((_c = this.ws) === null || _c === void 0 ? void 0 : _c.readyState) || -1);
+        }
     };
     SocketIo.prototype.onClose = function () {
+        var _a, _b, _c;
         if (this.autoReconnect)
             this.reconnectWS(this.maxReconnectTimes);
+        if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.close)) {
+            (_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.close.call(this, ((_c = this.ws) === null || _c === void 0 ? void 0 : _c.readyState) || -1);
+        }
     };
     SocketIo.prototype.getReqURL = function () {
         if (/^ws(s)/.test(this.url)) {

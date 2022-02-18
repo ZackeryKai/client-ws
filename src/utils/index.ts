@@ -16,7 +16,7 @@ export function isNull (data: any): boolean {
   export function isArray (data: any): boolean {
     return Object.prototype.toString.call(data) === '[object Array]'
   }
-  export function isTypeOf (data: any): string {
-    return Object.prototype.toString.call(data)
+  export function isTypeOf (data: any, type: string): boolean {
+    return Object.prototype.toString.call(data) === type
   }
   
