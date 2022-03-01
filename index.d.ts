@@ -15,6 +15,8 @@ interface ISocketIo {
     autoReconnect?: boolean;
     isAjaxPolling?: boolean;
     socketEvt?: ISocketEvt;
+    maxReconnectTimes?: number;
+    reconnectDelay?: number;
 }
 declare class SocketIo {
     private ws;
@@ -25,11 +27,12 @@ declare class SocketIo {
     private reqMethod;
     private socketEvt;
     private callback;
-    constructor({ url, protocol, callback, heartbeatData, isHeartbeatInspect, heartbeatDelay, autoReconnect, isAjaxPolling, socketEvt }: ISocketIo);
+    constructor({ url, protocol, callback, heartbeatData, isHeartbeatInspect, heartbeatDelay, autoReconnect, isAjaxPolling, maxReconnectTimes, reconnectDelay, socketEvt }: ISocketIo);
     private init;
     private pollingConnect;
     private createConnectInspect;
     private onOpened;
+    private restoreReconnectStatus;
     private onMessage;
     private onError;
     private onClose;
@@ -44,6 +47,7 @@ declare class SocketIo {
     private autoReconnect;
     private isReconnecting;
     private maxReconnectTimes;
+    private reconnectTimes;
     private reconnectDelay;
     private reconnectWS;
     destroyed(): void;

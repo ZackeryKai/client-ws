@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Utils = __importStar(require("./utils"));
 var SocketIo = /** @class */ (function () {
     function SocketIo(_a) {
-        var url = _a.url, protocol = _a.protocol, callback = _a.callback, heartbeatData = _a.heartbeatData, isHeartbeatInspect = _a.isHeartbeatInspect, heartbeatDelay = _a.heartbeatDelay, autoReconnect = _a.autoReconnect, isAjaxPolling = _a.isAjaxPolling, socketEvt = _a.socketEvt;
+        var url = _a.url, protocol = _a.protocol, callback = _a.callback, heartbeatData = _a.heartbeatData, isHeartbeatInspect = _a.isHeartbeatInspect, heartbeatDelay = _a.heartbeatDelay, autoReconnect = _a.autoReconnect, isAjaxPolling = _a.isAjaxPolling, maxReconnectTimes = _a.maxReconnectTimes, reconnectDelay = _a.reconnectDelay, socketEvt = _a.socketEvt;
         this.ws = null; // socket对象
         this.isAjaxPolling = false; // 当浏览器不支持socket服务时，是否使用轮询的方式
         this.reqURL = null; // 轮询请求用的URL
@@ -37,6 +37,7 @@ var SocketIo = /** @class */ (function () {
         this.autoReconnect = false; // 断开后是否自动重连
         this.isReconnecting = false; // 是否正在重连中
         this.maxReconnectTimes = 3; // 最大重连次数
+        this.reconnectTimes = this.maxReconnectTimes;
         this.reconnectDelay = 3; // 每次重连之间间隔时长
         this.url = url;
         this.protocol = protocol;
@@ -46,6 +47,8 @@ var SocketIo = /** @class */ (function () {
         this.isAjaxPolling = isAjaxPolling !== null && isAjaxPolling !== void 0 ? isAjaxPolling : false;
         this.isHeartbeatInspect = isHeartbeatInspect !== null && isHeartbeatInspect !== void 0 ? isHeartbeatInspect : false;
         this.socketEvt = socketEvt !== null && socketEvt !== void 0 ? socketEvt : null;
+        this.maxReconnectTimes = maxReconnectTimes || this.maxReconnectTimes || 3;
+        this.reconnectDelay = reconnectDelay || this.reconnectDelay || 3;
         this.callback = callback || this.callback;
         if (this.createConnectInspect()) {
             this.init();
@@ -89,12 +92,17 @@ var SocketIo = /** @class */ (function () {
         var _a, _b, _c;
         if (((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) === WebSocket.OPEN) {
             console.log('[websocket]: websocket服务已经成功创建连接');
+            this.restoreReconnectStatus();
             // 如果需要心跳检测则在连接成功后初始化心跳检测
             this.isHeartbeatInspect && this.heartbeat();
             if (Utils.isFunction((_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.open)) {
                 (_c = this.socketEvt) === null || _c === void 0 ? void 0 : _c.open.call(this, this.ws.readyState);
             }
         }
+    };
+    SocketIo.prototype.restoreReconnectStatus = function () {
+        this.reconnectTimes = this.maxReconnectTimes;
+        this.isReconnecting = false;
     };
     SocketIo.prototype.onMessage = function (evt) {
         var _a, _b, _c;
@@ -110,7 +118,7 @@ var SocketIo = /** @class */ (function () {
     SocketIo.prototype.onError = function () {
         var _a, _b, _c;
         if (this.autoReconnect)
-            this.reconnectWS(this.maxReconnectTimes);
+            this.reconnectWS();
         if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.error)) {
             (_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.error.call(this, ((_c = this.ws) === null || _c === void 0 ? void 0 : _c.readyState) || -1);
         }
@@ -118,7 +126,7 @@ var SocketIo = /** @class */ (function () {
     SocketIo.prototype.onClose = function () {
         var _a, _b, _c;
         if (this.autoReconnect)
-            this.reconnectWS(this.maxReconnectTimes);
+            this.reconnectWS();
         if (Utils.isFunction((_a = this.socketEvt) === null || _a === void 0 ? void 0 : _a.close)) {
             (_b = this.socketEvt) === null || _b === void 0 ? void 0 : _b.close.call(this, ((_c = this.ws) === null || _c === void 0 ? void 0 : _c.readyState) || -1);
         }
@@ -150,15 +158,22 @@ var SocketIo = /** @class */ (function () {
             _this.emitData(_this.heartbeatData);
         }, this.heartbeatDelay * 1000);
     };
-    SocketIo.prototype.reconnectWS = function (times) {
+    SocketIo.prototype.reconnectWS = function () {
+        var _this = this;
         var _a, _b;
-        if (times === 0 || this.isReconnecting || ((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) === WebSocket.CONNECTING || ((_b = this.ws) === null || _b === void 0 ? void 0 : _b.readyState) === WebSocket.OPEN)
+        if (this.reconnectTimes === 0 || this.isReconnecting || ((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) === WebSocket.CONNECTING || ((_b = this.ws) === null || _b === void 0 ? void 0 : _b.readyState) === WebSocket.OPEN)
             return;
         try {
-            setTimeout(this.init, this.reconnectDelay * 1000);
+            this.isReconnecting = true;
+            var timer_1 = setTimeout(function () {
+                clearTimeout(timer_1);
+                _this.isReconnecting = false;
+                _this.init.call(_this);
+            }, this.reconnectDelay * 1000);
         }
-        catch (err) {
-            this.reconnectWS(times - 1);
+        catch (err) { }
+        finally {
+            this.reconnectTimes -= 1;
         }
     };
     SocketIo.prototype.destroyed = function () {

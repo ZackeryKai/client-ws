@@ -25,7 +25,7 @@ function isArray(data) {
     return Object.prototype.toString.call(data) === '[object Array]';
 }
 exports.isArray = isArray;
-function isTypeOf(data) {
-    return Object.prototype.toString.call(data);
+function isTypeOf(data, type) {
+    return Object.prototype.toString.call(data) === type;
 }
 exports.isTypeOf = isTypeOf;

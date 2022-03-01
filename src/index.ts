@@ -20,6 +20,8 @@ interface ISocketIo {
   autoReconnect?: boolean
   isAjaxPolling?: boolean
   socketEvt?: ISocketEvt
+  maxReconnectTimes?: number
+  reconnectDelay?: number
 }
 
 class SocketIo {
@@ -38,6 +40,8 @@ class SocketIo {
     url, protocol, callback,
     heartbeatData, isHeartbeatInspect,
     heartbeatDelay, autoReconnect, isAjaxPolling,
+    maxReconnectTimes,
+    reconnectDelay,
     socketEvt
   }: ISocketIo) {
     this.url = url
@@ -48,6 +52,8 @@ class SocketIo {
     this.isAjaxPolling = isAjaxPolling ?? false
     this.isHeartbeatInspect = isHeartbeatInspect ?? false
     this.socketEvt = socketEvt ?? null
+    this.maxReconnectTimes = maxReconnectTimes || this.maxReconnectTimes || 3
+    this.reconnectDelay =  reconnectDelay || this.reconnectDelay || 3
     this.callback = callback || this.callback
 
     if (this.createConnectInspect()) {
@@ -94,12 +100,18 @@ class SocketIo {
   private onOpened (): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       console.log('[websocket]: websocket服务已经成功创建连接')
+      this.restoreReconnectStatus()
       // 如果需要心跳检测则在连接成功后初始化心跳检测
       this.isHeartbeatInspect && this.heartbeat()
       if (Utils.isFunction(this.socketEvt?.open)) {
         this.socketEvt?.open.call(this, this.ws.readyState)
       }
     }
+  }
+
+  private restoreReconnectStatus () {
+    this.reconnectTimes = this.maxReconnectTimes
+    this.isReconnecting = false
   }
 
   private onMessage (evt: any): void {
@@ -112,14 +124,14 @@ class SocketIo {
   }
 
   private onError (): void {
-    if (this.autoReconnect) this.reconnectWS(this.maxReconnectTimes)
+    if (this.autoReconnect) this.reconnectWS()
     if (Utils.isFunction(this.socketEvt?.error)) {
       this.socketEvt?.error.call(this, this.ws?.readyState || -1)
     }
   }
 
   private onClose (): void {
-    if (this.autoReconnect) this.reconnectWS(this.maxReconnectTimes)
+    if (this.autoReconnect) this.reconnectWS()
     if (Utils.isFunction(this.socketEvt?.close)) {
       this.socketEvt?.close.call(this, this.ws?.readyState || -1)
     }
@@ -159,13 +171,19 @@ class SocketIo {
   private autoReconnect = false // 断开后是否自动重连
   private isReconnecting = false // 是否正在重连中
   private maxReconnectTimes = 3 // 最大重连次数
+  private reconnectTimes = this.maxReconnectTimes
   private reconnectDelay = 3 // 每次重连之间间隔时长
-  private reconnectWS (times: number): void {
-    if (times === 0 || this.isReconnecting || this.ws?.readyState === WebSocket.CONNECTING || this.ws?.readyState === WebSocket.OPEN) return
+  private reconnectWS (): void {
+    if (this.reconnectTimes === 0 || this.isReconnecting || this.ws?.readyState === WebSocket.CONNECTING || this.ws?.readyState === WebSocket.OPEN) return
     try {
-      setTimeout(this.init, this.reconnectDelay * 1000)
-    } catch (err) {
-      this.reconnectWS(times - 1)
+      this.isReconnecting = true
+      const timer = setTimeout(() => {
+        clearTimeout(timer)
+        this.isReconnecting = false
+        this.init.call(this)
+      }, this.reconnectDelay * 1000)
+    } catch (err) {} finally {
+      this.reconnectTimes -= 1
     }
   }
 
