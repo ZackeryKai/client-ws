@@ -141,7 +141,7 @@ class SocketIo {
     return `${this.protocol === 'wss' ? 'https' : 'http'}://${this.url}`
   }
 
-  private emitData (data: any): void {
+  public emitData (data: any): void {
     this.ws?.send(JSON.stringify(data))
   }
 

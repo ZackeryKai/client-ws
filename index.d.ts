@@ -35,7 +35,7 @@ declare class SocketIo {
     private onClose;
     private getReqURL;
     private getPollingURL;
-    private emitData;
+    emitData(data: any): void;
     private heartbeatTimer;
     private isHeartbeatInspect;
     private heartbeatDelay;

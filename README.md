@@ -35,7 +35,6 @@ class MySocket extends SocketIO {
 |isHeartbeatInspect|[N]|false|是否心跳检测|
 |heartbeatDelay|[N]|5|心跳检测间隔，默认5s|
 |autoReconnect|[N]|false|是否断开后自动重连|
-|isAjaxPolling|[N]|false|不支持websocket时，是否降级为轮询（暂未实现）|
 |socketEvt|[N]|  |websocket事件, 改值为一个对象，详细参考下述说明|
 
 ##### websocket事件[socketEvt]
