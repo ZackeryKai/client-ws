@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.11](https://github.com/ZackeryKai/client-ws/compare/v0.0.8...v0.0.11) (2022-06-01)
+
+
+### Bug Fixes
+
+* 修复settimeout作用域问题 ([2b44f6b](https://github.com/ZackeryKai/client-ws/commit/2b44f6bb69c0443d88121c1a70608b928c240916))
+* bugfix ws ([c021158](https://github.com/ZackeryKai/client-ws/commit/c021158cf08409118c6a576302048d8120dfe56e))
+* fix ([b27e6ba](https://github.com/ZackeryKai/client-ws/commit/b27e6ba72ed0cee68b32d0f89dbdc5ee68f894c4))
+
 ### [0.0.10](https://github.com/ZackeryKai/client-ws/compare/v0.0.9...v0.0.10) (2022-03-01)
 
 ### [0.0.9](https://github.com/ZackeryKai/client-ws/compare/v0.0.8...v0.0.9) (2022-03-01)
